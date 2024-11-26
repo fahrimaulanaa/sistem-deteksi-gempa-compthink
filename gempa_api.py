@@ -127,7 +127,7 @@ def export_pdf():
                                              initialfile=default_filename,
                                              filetypes=[("PDF files", "*.pdf"), ("All files", "*.*")])
     if file_path:
-        # Buat DataFrame
+        # Buat DataFrame untuk data utama
         df = pd.DataFrame(data_hasil)
 
         # Konversi DataFrame ke list of lists
@@ -152,10 +152,10 @@ def export_pdf():
         elements.append(paragraph)
         elements.append(Spacer(1, 12))  # Tambahkan jarak
 
-        # Tambahkan tabel
+        # Tambahkan tabel utama
         table = Table(data)
 
-        # Tambahkan style ke tabel
+        # Tambahkan style ke tabel utama
         style = TableStyle([
             ('BACKGROUND', (0,0), (-1,0), colors.gray),
             ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
@@ -178,11 +178,100 @@ def export_pdf():
 
         elements.append(table)
 
+        # Filter data berdasarkan klasifikasi dan buatkan tabel per klasifikasi
+        klasifikasi_jarak = {
+            "Dekat": [],
+            "Sedang": [],
+            "Jauh": []
+        }
+        klasifikasi_kedalaman = {
+            "Dalam": [],
+            "Sangat Dalam": []
+        }
+        klasifikasi_skala = {
+            "Kecil": [],
+            "Sedang": [],
+            "Tinggi": []
+        }
+
+        # Pisahkan data berdasarkan klasifikasi
+        for data_item in data_hasil:
+            klasifikasi_jarak[data_item["Jarak Dari Pantai"]].append(data_item)
+            klasifikasi_kedalaman[data_item["Kedalaman"]].append(data_item)
+            klasifikasi_skala[data_item["Skala"]].append(data_item)
+
+        # Tambahkan Tabel untuk klasifikasi Jarak
+        for klas_jarak, items in klasifikasi_jarak.items():
+            if items:
+                # Header untuk tabel klasifikasi Jarak
+                elements.append(Spacer(1, 24))  # Jarak antar tabel
+                elements.append(Paragraph(f"<b>Klasifikasi Jarak: {klas_jarak}</b>", style_heading))
+                table_jarak_data = [df.columns.to_list()] + [list(item.values()) for item in items]
+                table_jarak = Table(table_jarak_data)
+
+                # Style untuk tabel klasifikasi Jarak
+                style_jarak = TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.gray),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0,0), (-1,0), 12),
+                    ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+                    ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ])
+                table_jarak.setStyle(style_jarak)
+                elements.append(table_jarak)
+
+        # Tambahkan Tabel untuk klasifikasi Kedalaman
+        for klas_kedalaman, items in klasifikasi_kedalaman.items():
+            if items:
+                # Header untuk tabel klasifikasi Kedalaman
+                elements.append(Spacer(1, 24))  # Jarak antar tabel
+                elements.append(Paragraph(f"<b>Klasifikasi Kedalaman: {klas_kedalaman}</b>", style_heading))
+                table_kedalaman_data = [df.columns.to_list()] + [list(item.values()) for item in items]
+                table_kedalaman = Table(table_kedalaman_data)
+
+                # Style untuk tabel klasifikasi Kedalaman
+                style_kedalaman = TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.gray),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0,0), (-1,0), 12),
+                    ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+                    ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ])
+                table_kedalaman.setStyle(style_kedalaman)
+                elements.append(table_kedalaman)
+
+        # Tambahkan Tabel untuk klasifikasi Skala
+        for klas_skala, items in klasifikasi_skala.items():
+            if items:
+                # Header untuk tabel klasifikasi Skala
+                elements.append(Spacer(1, 24))  # Jarak antar tabel
+                elements.append(Paragraph(f"<b>Klasifikasi Skala: {klas_skala}</b>", style_heading))
+                table_skala_data = [df.columns.to_list()] + [list(item.values()) for item in items]
+                table_skala = Table(table_skala_data)
+
+                # Style untuk tabel klasifikasi Skala
+                style_skala = TableStyle([
+                    ('BACKGROUND', (0,0), (-1,0), colors.gray),
+                    ('TEXTCOLOR', (0,0), (-1,0), colors.whitesmoke),
+                    ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                    ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0,0), (-1,0), 12),
+                    ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+                    ('GRID', (0,0), (-1,-1), 1, colors.black),
+                ])
+                table_skala.setStyle(style_skala)
+                elements.append(table_skala)
+
         # Bangun PDF
         pdf.build(elements)
 
         messagebox.showinfo("Success", f"Data berhasil diekspor ke {file_path}")
         os.system("start " + file_path)
+
 
 # Fungsi untuk memindahkan fokus ke kedalaman
 def focus_kedalaman(event):
